@@ -24,11 +24,23 @@ class WeightedDirectedGraph:
         # Cria a conexão direcionada com o peso
         self.edges[source][target] = weight
     
+    # Adiciona uma aresta não-direcionada (bidirecional)
+    def add_undirected_edge(self, source, target, weight):
+        # Adiciona aresta em ambas as direções
+        self.add_edge(source, target, weight)
+        self.add_edge(target, source, weight)
+    
     # Adiciona aresta calculando o peso automaticamente pela distância geográfica
     def add_edge_with_coords(self, source, target, source_coords, target_coords):
         # Calcula a distância real entre as coordenadas
         weight = haversine(source_coords, target_coords)
         self.add_edge(source, target, weight)
+    
+    # Adiciona aresta não-direcionada com coordenadas
+    def add_undirected_edge_with_coords(self, source, target, source_coords, target_coords):
+        # Calcula a distância real entre as coordenadas
+        weight = haversine(source_coords, target_coords)
+        self.add_undirected_edge(source, target, weight)
     
     # Retorna o peso de uma aresta específica
     def get_weight(self, source, target):
@@ -54,6 +66,11 @@ class WeightedDirectedGraph:
     def remove_edge(self, source, target):
         if source in self.edges and target in self.edges[source]:
             del self.edges[source][target]
+    
+    # Remove uma aresta não-direcionada (ambas as direções)
+    def remove_undirected_edge(self, source, target):
+        self.remove_edge(source, target)
+        self.remove_edge(target, source)
     
     # Retorna lista de todos os vértices
     def get_vertices(self):
