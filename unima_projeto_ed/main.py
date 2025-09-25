@@ -1,7 +1,8 @@
 # flask_api_example/main.py
-from grafo import build_graph
 from data import get_osm_data
 from flask import Flask, jsonify
+from grafo import osm_to_adj_list
+from Dijkstra import Dijkstra, Graph
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -20,6 +21,10 @@ if __name__ == "__main__":
     bbox = [-9.6379, -35.7062, -9.6339, -35.7022]
 
     nodes, ways = get_osm_data(bbox)
-    print("Nós:", len(nodes), "Ways:", len(ways))
-    G = build_graph(nodes, ways)
-    print("Grafo:", len(G.nodes), "Nós,", len(G.edges), "Arestas")
+    adj_list = osm_to_adj_list(nodes, ways)
+    my_graph = Graph(adj_list)
+    
+    start = list(adj_list.keys())[0]
+    end = list(adj_list.keys())[-1]
+    Dijkstra(my_graph, start, end)
+   

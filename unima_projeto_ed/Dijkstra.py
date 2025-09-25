@@ -73,7 +73,7 @@ def Dijkstra(graph, start, end):
                 removed = previous[removed]      # vai para o pai no caminho ótimo
             path.append(start.value)             # por fim, coloca o início
             # Imprime a distância mínima encontrada até 'end'
-            print(f"shortest distance to {end.value}: ", distances[end])
+            print(f"shortest distance to {end.value:}: ", distances[end])
             # O 'path' foi construído de trás pra frente, então invertimos para exibir do início ao fim
             print(f"path to {end.value}: ", path[::-1])
             return

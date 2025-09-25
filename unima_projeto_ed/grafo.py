@@ -1,25 +1,30 @@
-from math import radians, cos, sin, asin, sqrt
-import networkx as nx
+import math
+from data import get_osm_data
+from Dijkstra import Vertex, Edge
 
-# Função para calcular a distância haversine entre dois pontos geográficos
-def haversine(coord1, coord2): 
-    # Distância em metros entre duas coordenadas (lat, lon).
-    lat1, lon1 = coord1
-    lat2, lon2 = coord2
-    R = 6371000  # raio da Terra em metros
-    dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
-    a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a))
-    return R * c
+def haversine(lat1, lon1, lat2, lon2):
+    # Calcula a distância entre dois pontos geográficos (em km)
+    R = 6371  # raio da Terra em km
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
 
-def build_graph(nodes, ways):
-    G = nx.DiGraph()
+def osm_to_adj_list(nodes, ways):
+    # Cria Vertex para cada nó
+    id_to_vertex = {nid: Vertex(str(nid)) for nid in nodes}
+    adj_list = {v: [] for v in id_to_vertex.values()}
+
+    # Para cada caminho (way), conecta os nós consecutivos
     for way in ways:
-        for i in range(len(way) - 1):
+        for i in range(len(way)-1):
             n1, n2 = way[i], way[i+1]
-            if n1 in nodes and n2 in nodes:
-                dist = haversine(nodes[n1], nodes[n2])
-                G.add_edge(n1, n2, weight=dist)
-                G.add_edge(n2, n1, weight=dist)  
-    return G
+            v1, v2 = id_to_vertex[n1], id_to_vertex[n2]
+            lat1, lon1 = nodes[n1]
+            lat2, lon2 = nodes[n2]
+            dist = haversine(lat1, lon1, lat2, lon2) / 100000
+            adj_list[v1].append(Edge(dist, v2))
+            adj_list[v2].append(Edge(dist, v1))  # bidirecional
+
+    return adj_list
