@@ -1,30 +1,43 @@
-import math
-from data import get_osm_data
-from Dijkstra import Vertex, Edge
+# unima_projeto_ed/grafo.py
 
-def haversine(lat1, lon1, lat2, lon2):
-    # Calcula a distância entre dois pontos geográficos (em km)
-    R = 6371  # raio da Terra em km
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+from .utils import haversine  # distancia em km
 
 def osm_to_adj_list(nodes, ways):
-    # Cria Vertex para cada nó
-    id_to_vertex = {nid: Vertex(str(nid)) for nid in nodes}
-    adj_list = {v: [] for v in id_to_vertex.values()}
+    """
+    Converte dados do OSM em lista de adjacência no formato:
+      { node_id: { vizinho_id: peso_km, ... }, ... }
 
-    # Para cada caminho (way), conecta os nós consecutivos
+    Parâmetros:
+      nodes: dict {node_id: (lat, lon)}
+      ways:  list de listas [ [node_id1, node_id2, ...], ... ]
+
+    Retorna:
+      adj_list: dict adequado para o teu A* (graph[current].items())
+    """
+    # inicializa cada nó com um dicionário de vizinhos
+    adj_list = {nid: {} for nid in nodes}
+
+    # para cada "way", liga nós consecutivos (bidirecional)
     for way in ways:
-        for i in range(len(way)-1):
-            n1, n2 = way[i], way[i+1]
-            v1, v2 = id_to_vertex[n1], id_to_vertex[n2]
+        for i in range(len(way) - 1):
+            n1, n2 = way[i], way[i + 1]
+            # ignora pares que não estejam no dict nodes (sanidade)
+            if n1 not in nodes or n2 not in nodes:
+                continue
+
             lat1, lon1 = nodes[n1]
             lat2, lon2 = nodes[n2]
-            dist = haversine(lat1, lon1, lat2, lon2) / 100000
-            adj_list[v1].append(Edge(dist, v2))
-            adj_list[v2].append(Edge(dist, v1))  # bidirecional
+
+            # distância em quilômetros (sem dividir por 100000)
+            dist_km = haversine(lat1, lon1, lat2, lon2)
+
+            # como muitas ruas são mão dupla, colocamos dos dois lados
+            # se já existir uma aresta, mantém o menor custo
+            prev12 = adj_list[n1].get(n2)
+            prev21 = adj_list[n2].get(n1)
+            if prev12 is None or dist_km < prev12:
+                adj_list[n1][n2] = dist_km
+            if prev21 is None or dist_km < prev21:
+                adj_list[n2][n1] = dist_km
 
     return adj_list

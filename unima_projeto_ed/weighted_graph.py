@@ -1,5 +1,5 @@
 # Importa a função para calcular distância entre coordenadas geográficas
-from grafo import haversine
+from utils import haversine
 
 # Grafo direcionado e ponderado para representar redes de ruas
 class WeightedDirectedGraph:
