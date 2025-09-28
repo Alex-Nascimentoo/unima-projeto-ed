@@ -1,5 +1,5 @@
 # Importa a função para calcular distância entre coordenadas geográficas
-from utils import haversine
+from .utils import haversine
 
 # Grafo direcionado e ponderado para representar redes de ruas
 class WeightedDirectedGraph:
@@ -32,14 +32,16 @@ class WeightedDirectedGraph:
     
     # Adiciona aresta calculando o peso automaticamente pela distância geográfica
     def add_edge_with_coords(self, source, target, source_coords, target_coords):
-        # Calcula a distância real entre as coordenadas
-        weight = haversine(source_coords, target_coords)
+        lat1, lon1 = source_coords
+        lat2, lon2 = target_coords
+        weight = haversine(lat1, lon1, lat2, lon2)
         self.add_edge(source, target, weight)
     
     # Adiciona aresta não-direcionada com coordenadas
     def add_undirected_edge_with_coords(self, source, target, source_coords, target_coords):
-        # Calcula a distância real entre as coordenadas
-        weight = haversine(source_coords, target_coords)
+        lat1, lon1 = source_coords
+        lat2, lon2 = target_coords
+        weight = haversine(lat1, lon1, lat2, lon2)
         self.add_undirected_edge(source, target, weight)
     
     # Retorna o peso de uma aresta específica

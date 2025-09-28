@@ -1,5 +1,5 @@
-from priority_queue import PriorityQueue
-from weighted_graph import WeightedDirectedGraph
+from .priority_queue import PriorityQueue
+from .weighted_graph import WeightedDirectedGraph
 
 # ---------------------------------------------
 # Dijkstra (pré-requisitos e ideia geral)
@@ -23,35 +23,32 @@ def Dijkstra(graph, start, end):
 
     # distances: distância mínima conhecida até cada vértice (inicialmente infinito)
     distances = {v: float("inf") for v in graph.get_vertices()}
-    distances[start] = 0  # distância do início até ele mesmo é 0
+    distances[start] = 0.0  # distância do início até ele mesmo é 0
 
     # Fila de prioridade (min-heap). Armazena pares (distância, vértice).
     queue = PriorityQueue()
-    queue.push(0, start)
-
-    # 'path' será usado para reconstruir/imprimir o caminho
-    path = []
+    queue.push(0.0, start)
 
     # Enquanto houver itens na fila
     while not queue.is_empty():
         # Remove o vértice com a MENOR distância atual (menor prioridade)
         removed = queue.pop()
+        if visited[removed]:
+            continue
         removed_distance = distances[removed]
         # Marca como visitado/finalizado
         visited[removed] = True
 
         # Se chegamos ao destino, reconstruímos o caminho e encerramos
         if removed == end:
-            # Sobe encadeando 'previous' até o início
-            while previous[removed]:
-                path.append(removed)       # adiciona o vértice atual
-                removed = previous[removed]      # vai para o pai no caminho ótimo
-            path.append(start)             # por fim, coloca o início
-            # Imprime a distância mínima encontrada até 'end'
-            print(f"shortest distance to {end}: ", distances[end])
-            # O 'path' foi construído de trás pra frente, então invertemos para exibir do início ao fim
-            print(f"path to {end}: ", path[::-1])
-            return
+            # Reconstrói caminho subindo encadeando 'previous' até o início
+            path = []
+            cur = end
+            while cur is not None:
+                path.append(cur)          # adiciona o vértice atual
+                cur = previous[cur]       # vai para o pai no caminho ótimo
+            path.reverse()                # inverte para ficar do início ao fim
+            return path, distances[end]   # retorna caminho e distância mínima
 
         # Relaxamento das arestas que saem de 'removed'
         for neighbor, weight in graph.get_neighbors_with_weights(removed):
@@ -70,30 +67,33 @@ def Dijkstra(graph, start, end):
                 queue.push(new_distance, neighbor)
 
     # Se a fila esvaziar sem encontrar 'end', não há caminho (ou não foi alcançado)
-    return
+    return [], float("inf")
 
 
 # ---------------------------------------------
-# Montagem do grafo de exemplo
+# Montagem do grafo de exemplo (para teste)
 # ---------------------------------------------
 
-# Cria o grafo usando WeightedDirectedGraph
-my_graph = WeightedDirectedGraph()
+if __name__ == "__main__":
+    # Cria o grafo usando WeightedDirectedGraph
+    my_graph = WeightedDirectedGraph()
 
-# Adiciona as arestas (não direcionadas)
-my_graph.add_undirected_edge("A", "B", 1.8)
-my_graph.add_undirected_edge("A", "C", 1.5)
-my_graph.add_undirected_edge("A", "D", 1.4)
-my_graph.add_undirected_edge("B", "E", 1.6)
-my_graph.add_undirected_edge("C", "E", 1.8)
-my_graph.add_undirected_edge("C", "F", 2.1)
-my_graph.add_undirected_edge("D", "F", 2.7)
-my_graph.add_undirected_edge("D", "G", 2.4)
-my_graph.add_undirected_edge("E", "F", 1.4)
-my_graph.add_undirected_edge("E", "H", 1.6)
-my_graph.add_undirected_edge("F", "G", 1.3)
-my_graph.add_undirected_edge("F", "H", 1.2)
-my_graph.add_undirected_edge("G", "H", 1.5)
+    # Adiciona as arestas (não direcionadas)
+    my_graph.add_undirected_edge("A", "B", 1.8)
+    my_graph.add_undirected_edge("A", "C", 1.5)
+    my_graph.add_undirected_edge("A", "D", 1.4)
+    my_graph.add_undirected_edge("B", "E", 1.6)
+    my_graph.add_undirected_edge("C", "E", 1.8)
+    my_graph.add_undirected_edge("C", "F", 2.1)
+    my_graph.add_undirected_edge("D", "F", 2.7)
+    my_graph.add_undirected_edge("D", "G", 2.4)
+    my_graph.add_undirected_edge("E", "F", 1.4)
+    my_graph.add_undirected_edge("E", "H", 1.6)
+    my_graph.add_undirected_edge("F", "G", 1.3)
+    my_graph.add_undirected_edge("F", "H", 1.2)
+    my_graph.add_undirected_edge("G", "H", 1.5)
 
-# Executa Dijkstra do A até H
-Dijkstra(my_graph, start="A", end="H")
+    # Executa Dijkstra do A até H
+    path, dist = Dijkstra(my_graph, start="A", end="H")
+    print(f"shortest distance to H: {dist}")
+    print(f"path to H: {path}")

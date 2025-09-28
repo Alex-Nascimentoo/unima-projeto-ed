@@ -1,3 +1,4 @@
+# main.py
 from flask import Flask, jsonify
 from .data import get_osm_data
 from .grafo import osm_to_adj_list
@@ -6,17 +7,24 @@ from .cvrp import Delivery, nearest_neighbor_cvrp
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 
+# ---------------------------------------------
+# API Flask
+# ---------------------------------------------
 
 @app.route("/")
 def home():
     return jsonify(message="API de Roteamento pronta!")
 
-
 def start():
+    """Sobe apenas a API (sem rodar CVRP automaticamente)."""
     app.run()
 
 
-if __name__ == "__main__":
+# ---------------------------------------------
+# Execução em modo batch (CLi)
+# ---------------------------------------------
+
+def run_batch():
     # -----------------------------
     # 1. Definir a área de estudo
     # -----------------------------
@@ -34,20 +42,24 @@ if __name__ == "__main__":
     # -----------------------------
     # 3. Montar o grafo
     # -----------------------------
-    # Aqui ajustei o osm_to_adj_list para devolver:
     # {node: {vizinho: peso, ...}}
     graph = osm_to_adj_list(nodes, ways)
     coordinates = nodes  # usado na heurística do A*
 
+    # sanity check simples
+    keys = list(graph.keys())
+    if len(keys) < 4:
+        raise RuntimeError("Área muito pequena: menos de 4 nós para montar o exemplo.")
+
     # -----------------------------
     # 4. Definir depósito e clientes
     # -----------------------------
-    depot = list(graph.keys())[0]  # escolhe o primeiro nó como depósito
+    depot = keys[0]  # escolhe o primeiro nó como depósito
 
     deliveries = [
-        Delivery("C1", list(graph.keys())[1], 2),
-        Delivery("C2", list(graph.keys())[2], 1),
-        Delivery("C3", list(graph.keys())[3], 2),
+        Delivery("C1", keys[1], 2),
+        Delivery("C2", keys[2], 1),
+        Delivery("C3", keys[3], 2),
     ]
 
     # Capacidade máxima do veículo
@@ -56,7 +68,9 @@ if __name__ == "__main__":
     # -----------------------------
     # 5. Resolver CVRP
     # -----------------------------
-    routes, total_distance = nearest_neighbor_cvrp(graph, coordinates, deliveries, capacity, depot)
+    routes, total_distance = nearest_neighbor_cvrp(
+        graph, coordinates, deliveries, capacity, depot
+    )
 
     # -----------------------------
     # 6. Exibir resultado
@@ -64,4 +78,27 @@ if __name__ == "__main__":
     print("\nRotas geradas (Vizinho Mais Próximo + A*):")
     for idx, r in enumerate(routes, start=1):
         print(f"Rota {idx}: {' -> '.join(str(x) for x in r)}")
-    print("Distância total:", total_distance)
+    print("Distância total (km):", total_distance)
+
+
+# ---------------------------------------------
+# Escolha do modo (API vs batch)
+# ---------------------------------------------
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Roteamento: API Flask ou execução batch (CVRP)."
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["api", "batch"],
+        default="batch",
+        help="Escolha 'api' para Flask ou 'batch' para executar o CVRP (default: batch).",
+    )
+    args = parser.parse_args()
+
+    if args.mode == "api":
+        start()      # só sobe a API
+    else:
+        run_batch()  # roda o pipeline OSM -> grafo -> CVRP
