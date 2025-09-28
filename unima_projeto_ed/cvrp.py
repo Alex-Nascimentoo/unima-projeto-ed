@@ -1,40 +1,33 @@
+# unima_projeto_ed/cvrp.py
 import math
-from .a_star import a_star  # usa teu A*
+from .a_star import a_star  # default
 
 class Delivery:
     def __init__(self, id, node, demand):
         self.id = id
-        self.node = node  # nó do grafo (mesmo que você passa pro A*)
+        self.node = node
         self.demand = demand
 
-
-def build_distance_matrix(graph, coordinates, points):
+def build_distance_matrix(graph, coordinates, points, shortest_path_fn):
     """
-    Cria matriz de distâncias chamando o A* para cada par de pontos.
-    points = lista de nós [depósito, cliente1, cliente2...]
+    Cria matriz de distâncias chamando a função de menor caminho para cada par.
+    shortest_path_fn: (graph, start, goal, coordinates) -> (path, dist)
     """
     matrix = {}
     for i in range(len(points)):
         for j in range(len(points)):
-            if i != j:
-                path, dist = a_star(graph, points[i], points[j], coordinates)
-                matrix[(points[i], points[j])] = dist
+            a, b = points[i], points[j]
+            if i == j:
+                matrix[(a, b)] = 0.0
+            else:
+                _, dist = shortest_path_fn(graph, a, b, coordinates)
+                matrix[(a, b)] = dist
     return matrix
 
-
-def nearest_neighbor_cvrp(graph, coordinates, deliveries, capacity, depot):
+def nearest_neighbor_cvrp(graph, coordinates, deliveries, capacity, depot, sp="a_star"):
     """
-    Heurística Vizinho Mais Próximo para CVRP.
-    - graph: grafo (dict {node: {vizinho: peso}})
-    - coordinates: dict {node: (lat, lon)} (usado na heurística do A*)
-    - deliveries: lista de objetos Delivery
-    - capacity: capacidade máxima do veículo
-    - depot: nó do depósito
+    sp: 'a_star' (default) ou 'dijkstra' — algoritmo p/ matriz de distâncias.
     """
-
-    # ---------------------------------------------
-    # Validações iniciais (evita loop infinito e soluções inválidas)
-    # ---------------------------------------------
     if capacity <= 0:
         raise ValueError("Capacidade do veículo deve ser maior que 0.")
 
@@ -42,18 +35,23 @@ def nearest_neighbor_cvrp(graph, coordinates, deliveries, capacity, depot):
     if over_capacity:
         raise ValueError(f"Entregas inviáveis (demanda > capacidade): {over_capacity}")
 
-    # pontos relevantes (depósito + clientes)
+    # escolhe a função de menor caminho
+    if sp == "a_star":
+        sp_fn = a_star
+    elif sp == "dijkstra":
+        from .dijkstra_adapter import dijkstra_adapter
+        sp_fn = dijkstra_adapter
+    else:
+        raise ValueError("Parâmetro 'sp' deve ser 'a_star' ou 'dijkstra'.")
+
     points = [depot] + [d.node for d in deliveries]
+    dist_matrix = build_distance_matrix(graph, coordinates, points, sp_fn)
 
-    # matriz de distâncias via A*
-    dist_matrix = build_distance_matrix(graph, coordinates, points)
-
-    # Verifica nós desconectados (A* retornou inf)
+    # valida desconexão
     for (i, j), dist in dist_matrix.items():
         if dist == float('inf'):
             raise ValueError(f"Nós desconectados no grafo entre {i} e {j}.")
 
-    # clientes restantes
     remaining = deliveries[:]
     routes = []
     total_distance = 0.0
@@ -64,12 +62,10 @@ def nearest_neighbor_cvrp(graph, coordinates, deliveries, capacity, depot):
         current = depot
 
         while True:
-            # candidatos que cabem no veículo
             candidates = [d for d in remaining if d.demand + load <= capacity]
             if not candidates:
                 break
 
-            # escolhe o mais próximo
             best = None
             best_cost = math.inf
             for d in candidates:
@@ -78,14 +74,12 @@ def nearest_neighbor_cvrp(graph, coordinates, deliveries, capacity, depot):
                     best_cost = cost
                     best = d
 
-            # vai até o cliente escolhido
             route.append(best.node)
             total_distance += best_cost
             load += best.demand
             current = best.node
             remaining.remove(best)
 
-        # volta ao depósito (garante que existe caminho de volta)
         return_cost = dist_matrix.get((current, depot), float('inf'))
         if return_cost == float('inf'):
             raise ValueError(f"Sem caminho de {current} para o depósito.")

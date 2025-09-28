@@ -1,79 +1,77 @@
+# unima_projeto_ed/dijkstra.py
 from .priority_queue import PriorityQueue
 from .weighted_graph import WeightedDirectedGraph
+from .stack import Stack
 
-# ---------------------------------------------
-# Dijkstra (pré-requisitos e ideia geral)
-# ---------------------------------------------
-# - Temos um grafo, um nó inicial (start) e um nó final (end).
-# - Os pesos das arestas DEVEM ser não negativos (Dijkstra não funciona com peso negativo).
-# - A estratégia: manter uma dist[] com a menor distância conhecida até cada vértice
-#   e usar uma fila de prioridade (min-heap) para sempre expandir o vértice com a menor distância atual.
-
-
-# ---------------------------------------------
-# Implementação do Dijkstra
-# ---------------------------------------------
+# -------------------------------------------------
+# Dijkstra: menor caminho em grafos com pesos >= 0
+# Usa min-heap (PriorityQueue) e reconstrói caminho
+# com uma PILHA (Stack) explicitamente (LIFO).
+# -------------------------------------------------
 
 def Dijkstra(graph, start, end):
-    # previous: guarda o "pai" no caminho ótimo (para reconstruir o caminho no final)
-    previous = {v: None for v in graph.get_vertices()}
+    """
+    graph: WeightedDirectedGraph
+    start, end: nós existentes no grafo
+    Retorna: (path:list, dist:float)
+    """
+    # Caso trivial
+    if start == end:
+        return [start], 0.0
 
-    # visited: marca quais vértices já foram "finalizados" (não precisam mais ser relaxados)
-    visited = {v: False for v in graph.get_vertices()}
+    vertices = graph.get_vertices()
 
-    # distances: distância mínima conhecida até cada vértice (inicialmente infinito)
-    distances = {v: float("inf") for v in graph.get_vertices()}
-    distances[start] = 0.0  # distância do início até ele mesmo é 0
+    # Tabelas auxiliares
+    previous = {v: None for v in vertices}        # pai no caminho ótimo
+    visited  = {v: False for v in vertices}       # já finalizado?
+    distances = {v: float("inf") for v in vertices}
+    distances[start] = 0.0
 
-    # Fila de prioridade (min-heap). Armazena pares (distância, vértice).
+    # Fila de prioridade: (distância acumulada, nó)
     queue = PriorityQueue()
     queue.push(0.0, start)
 
-    # Enquanto houver itens na fila
     while not queue.is_empty():
-        # Remove o vértice com a MENOR distância atual (menor prioridade)
-        removed = queue.pop()
-        if visited[removed]:
+        u = queue.pop()
+        if visited[u]:
             continue
-        removed_distance = distances[removed]
-        # Marca como visitado/finalizado
-        visited[removed] = True
+        visited[u] = True
+        dist_u = distances[u]
 
-        # Se chegamos ao destino, reconstruímos o caminho e encerramos
-        if removed == end:
-            # Reconstrói caminho subindo encadeando 'previous' até o início
-            path = []
+        # Se alcançou o destino, reconstrói com PILHA (LIFO)
+        if u == end:
+            stack = Stack()
             cur = end
             while cur is not None:
-                path.append(cur)          # adiciona o vértice atual
-                cur = previous[cur]       # vai para o pai no caminho ótimo
-            path.reverse()                # inverte para ficar do início ao fim
-            return path, distances[end]   # retorna caminho e distância mínima
+                stack.push(cur)
+                cur = previous[cur]
 
-        # Relaxamento das arestas que saem de 'removed'
-        for neighbor, weight in graph.get_neighbors_with_weights(removed):
-            # Se o destino já foi finalizado, ignoramos
-            if visited[neighbor]:
+            path = []
+            while not stack.is_empty():
+                path.append(stack.pop())
+            return path, distances[end]
+
+        # Relaxa arestas que saem de u
+        for v, w in graph.get_neighbors_with_weights(u):
+            if visited[v]:
+                continue
+            if w < 0:
+                # Dijkstra não suporta pesos negativos; ignora por sanidade
                 continue
 
-            # Custo de chegar ao vizinho passando por 'removed'
-            new_distance = removed_distance + weight
+            alt = dist_u + w
+            if alt < distances[v]:
+                distances[v] = alt
+                previous[v] = u
+                queue.push(alt, v)
 
-            # Se encontramos um caminho melhor, atualiza dist e previous
-            if new_distance < distances[neighbor]:
-                distances[neighbor] = new_distance
-                previous[neighbor] = removed
-                # Empurra para a fila a nova melhor distância conhecida desse vizinho
-                queue.push(new_distance, neighbor)
-
-    # Se a fila esvaziar sem encontrar 'end', não há caminho (ou não foi alcançado)
+    # Não há caminho alcançável até 'end'
     return [], float("inf")
 
 
-# ---------------------------------------------
-# Montagem do grafo de exemplo (para teste)
-# ---------------------------------------------
-
+# -------------------------------------------------
+# Exemplo simples (execução direta)
+# -------------------------------------------------
 if __name__ == "__main__":
     # Cria o grafo usando WeightedDirectedGraph
     my_graph = WeightedDirectedGraph()
