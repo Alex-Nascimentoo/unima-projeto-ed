@@ -1,66 +1,126 @@
-# Unima Projeto ED
+Unima Projeto ED
+================
 
-Este projeto é um sistema de **otimização de rotas para entregas urbanas**, desenvolvido na disciplina de Estruturas de Dados. Ele aplica conceitos fundamentais de **grafos**, **algoritmos de menor caminho** e **heurísticas de roteamento de veículos** em um problema prático do dia a dia. Para isso, utilizamos dados reais do **OpenStreetMap**, que são transformados em grafos e usados para simular a operação de entregas urbanas.
+Este projeto é um sistema de **otimização de rotas para entregas urbanas**, desenvolvido na disciplina de Estruturas de Dados. Ele aplica conceitos fundamentais de **grafos**, **algoritmos de menor caminho** e **heurísticas de roteamento de veículos** em um problema real, utilizando dados do **OpenStreetMap** como base.
 
----
+Objetivo
+--------
 
-## 🎯 Objetivo
+O objetivo do trabalho é:
 
-O trabalho tem como principais metas:
+- Construir um **grafo** a partir de mapas reais.  
+- Implementar os algoritmos de **Dijkstra** e **A\*** para cálculo de menor caminho.  
+- Resolver o **Problema de Roteamento de Veículos com Capacidade (CVRP)** por meio da heurística do **Vizinho Mais Próximo**.  
+- Implementar manualmente três estruturas de dados:  
 
-- Construir um **grafo** a partir de dados reais do OSM.  
-- Implementar dois algoritmos clássicos de **menor caminho**:  
-  - **Dijkstra** (base).  
-  - **A\*** (com heurística haversine).  
-- Resolver o **Problema de Roteamento de Veículos com Capacidade (CVRP)** usando a heurística do **Vizinho Mais Próximo**.  
-- Utilizar **estruturas de dados implementadas manualmente**, como:  
-  - **Priority Queue** (heap binário mínimo).  
-  - **Queue** (FIFO) para pedidos de entrega.  
-  - **Stack** (LIFO) para reconstrução de caminhos.  
+  - **Priority Queue**: fila de prioridade baseada em heap binário mínimo.  
+  - **Queue**: fila FIFO para gerenciar pedidos de entrega.  
+  - **Stack**: pilha LIFO utilizada na reconstrução dos caminhos.  
 
----
+Funcionamento
+-------------
 
-## ⚙️ Como funciona
+O funcionamento pode ser descrito em três etapas principais:
 
-O funcionamento do sistema acontece em três etapas principais:
+1. **Construção do Grafo**  
+   O mapa é convertido em um grafo, onde cruzamentos se tornam nós e ruas se tornam arestas ponderadas pela distância entre os pontos, calculada pela fórmula de Haversine em quilômetros.  
 
-1. **Mapa → Grafo**  
-   As ruas e cruzamentos do OpenStreetMap são transformados em nós e arestas. Cada aresta recebe como peso a **distância em quilômetros**, calculada pela fórmula de haversine.  
+2. **Algoritmos de Menor Caminho**  
+   São aplicados **Dijkstra** (explorando todas as possibilidades) e **A\*** (versão otimizada com heurística admissível, usando a distância em linha reta entre os pontos).  
 
-2. **Menor Caminho**  
-   - O algoritmo de **Dijkstra** encontra sempre o menor caminho explorando todas as possibilidades.  
-   - O algoritmo **A\*** é uma versão otimizada que utiliza a distância em linha reta como heurística para guiar a busca e reduzir a quantidade de nós explorados.  
+3. **Resolução do CVRP**  
+   Considera um depósito central e clientes com demandas específicas. A capacidade máxima do veículo é respeitada, e as rotas sempre começam e terminam no depósito, utilizando a heurística do vizinho mais próximo.  
 
-3. **CVRP (Capacitated Vehicle Routing Problem)**  
-   Um depósito central e clientes com demandas são definidos. O sistema respeita a **capacidade máxima do veículo**, garantindo que as rotas comecem e terminem no depósito. A heurística do vizinho mais próximo é usada para construir essas rotas.  
+Requisitos e Instalação
+-----------------------
 
----
+Para executar o projeto, é necessário:
 
-## 🚀 Instalação e Execução
+- **Python 3.10 ou superior**  
+- **Poetry** instalado  
 
-> **Requisitos:** [Python 3.10+](https://www.python.org/) e [Poetry](https://python-poetry.org/docs/#installation).  
+Passos para instalação:
 
-No terminal, execute:
+.. code-block:: bash
 
-```bash
-# 1) Clonar o repositório
-git clone https://github.com/Alex-Nascimentoo/unima-projeto-ed.git
-cd unima-projeto-ed
+   # Clonar o repositório
+   git clone https://github.com/Alex-Nascimentoo/unima-projeto-ed.git
 
-# 2) Instalar as dependências
-poetry install
+   # Entrar na pasta do projeto
+   cd unima-projeto-ed
 
-# 3) Executar o sistema
+   # Instalar as dependências
+   poetry install
 
-# --- Batch com A* (default) ---
-# Calcula rotas usando A*. Saída: rotas geradas + distância total (em km).
-poetry run python -m unima_projeto_ed.main --mode batch --sp a_star
+Modos de Execução
+-----------------
 
-# --- Batch com Dijkstra ---
-# Calcula rotas usando Dijkstra. Saída: rotas geradas + distância total (em km).
-poetry run python -m unima_projeto_ed.main --mode batch --sp dijkstra
+Existem três formas de executar o projeto:
 
-# --- API Flask ---
-# Sobe uma API HTTP em http://127.0.0.1:5000/
-# Ao acessar no navegador, retorna {"message": "API de Roteamento pronta!"}.
-poetry run python -m unima_projeto_ed.main --mode api
+**Modo Batch com A\***  
+
+.. code-block:: bash
+
+   poetry run python -m unima_projeto_ed.main --mode batch --sp a_star
+
+**Modo Batch com Dijkstra**  
+
+.. code-block:: bash
+
+   poetry run python -m unima_projeto_ed.main --mode batch --sp dijkstra
+
+Em ambos os modos *batch*, o terminal exibirá as rotas geradas, mostrando o depósito, os clientes visitados e a distância total percorrida em quilômetros.  
+
+**Modo API Flask**  
+
+.. code-block:: bash
+
+   poetry run python -m unima_projeto_ed.main --mode api
+
+A API ficará disponível em `http://127.0.0.1:5000/` e responderá com a mensagem:  
+
+.. code-block:: json
+
+   {"message": "API de Roteamento pronta!"}
+
+Exemplo de Saída
+----------------
+
+No modo *batch*, um exemplo de saída é:
+
+.. code-block:: text
+
+   Rotas geradas (Vizinho Mais Próximo + A_STAR):
+   Rota 1: 364129879 -> 431187370 -> 431187375 -> 364129879
+   Rota 2: 364129879 -> 431187380 -> 364129879
+   Distância total (km): 3.48
+
+Análise de Complexidade
+-----------------------
+
+- **Fila de Prioridade (Heap Binário Mínimo):** custo de O(log N) para inserção e remoção.  
+- **Dijkstra:** complexidade O((V + E) log V).  
+- **A\*:** mesma ordem no pior caso, mas tende a expandir menos nós devido à heurística.  
+- **CVRP:**  
+
+  - Construção da matriz de distâncias: O(m² * SPC), onde m é o número de pontos (depósito + clientes) e SPC é o custo de uma execução de shortest path (A\* ou Dijkstra).  
+  - Construção final das rotas: O(n²) sobre os clientes.  
+
+Observações Importantes
+-----------------------
+
+- Os pesos das arestas representam distâncias em quilômetros, calculadas pela fórmula de Haversine.  
+- As ruas foram tratadas como bidirecionais sempre que possível.  
+- O sistema não leva em consideração fatores como tempo de viagem, semáforos ou tráfego.  
+- É necessário acesso à internet para consultar a **Overpass API**, que fornece os dados do OpenStreetMap usados para montar o grafo.  
+
+Autores
+-------
+
+Este trabalho foi desenvolvido por:
+
+- Ygor Gabriel  
+- Henrique de Moraes  
+- Felipe Sorrentino  
+- Alex Nascimento  
+- Gabriel Calheiros  
