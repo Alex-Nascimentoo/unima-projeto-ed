@@ -1,5 +1,5 @@
 import math
-from .priority_queue import PriorityQueue
+from priority_queue import PriorityQueue
 
 def heuristic(node1, node2, coordinates):
     # Calcula a distância euclidiana entre dois pontos.
