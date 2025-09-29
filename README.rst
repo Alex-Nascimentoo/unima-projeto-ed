@@ -35,25 +35,47 @@ Follow these steps to set up and run the project:
 
 
 
-# How to execute tests
+How to execute tests
+======================
 
-## Instalar dependências (se necessário)
-pip install matplotlib pytest
+**Instalar dependências (se necessário)**
 
-## Executar todos os testes com supressão de warnings
-pytest test_performance.py -v -s -W ignore::DeprecationWarning
+.. code-block:: bash
 
-## Executar teste específico do gráfico tempo vs tamanho
-pytest test_performance.py::test_performance_vs_graph_size -v -s -W ignore::DeprecationWarning
+    pip install matplotlib pytest
 
-## Executar teste específico do gráfico nós explorados
-pytest test_performance.py::test_nodes_explored_comparison -v -s -W ignore::DeprecationWarning
+**Executar todos os testes com supressão de warnings**
 
-## Executar teste de performance A-Z
-pytest test_performance.py::test_performance_analysis_AZ -v -s -W ignore::DeprecationWarning
+.. code-block:: bash
 
-## Executar teste de correção
-pytest test_performance.py::test_algorithm_correctness_AZ -v -s -W ignore::DeprecationWarning
+    pytest test_performance.py -v -s -W ignore::DeprecationWarning
 
-## Executar com relatório simplificado
-pytest test_performance.py -v --tb=short -W ignore::DeprecationWarning
+**Executar teste específico do gráfico tempo vs tamanho**
+
+.. code-block:: bash
+
+    pytest test_performance.py::test_performance_vs_graph_size -v -s -W ignore::DeprecationWarning
+
+**Executar teste específico do gráfico nós explorados**
+
+.. code-block:: bash
+
+    pytest test_performance.py::test_nodes_explored_comparison -v -s -W ignore::DeprecationWarning
+
+**Executar teste de performance A-Z**
+
+.. code-block:: bash
+
+    pytest test_performance.py::test_performance_analysis_AZ -v -s -W ignore::DeprecationWarning
+
+**Executar teste de correção**
+
+.. code-block:: bash
+
+    pytest test_performance.py::test_algorithm_correctness_AZ -v -s -W ignore::DeprecationWarning
+
+**Executar com relatório simplificado**
+
+.. code-block:: bash
+
+    pytest test_performance.py -v --tb=short -W ignore::DeprecationWarning
