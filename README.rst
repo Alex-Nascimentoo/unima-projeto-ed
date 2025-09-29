@@ -32,3 +32,28 @@ Follow these steps to set up and run the project:
         poetry run start
 
     By default, the app will be available at http://127.0.0.1:5000/
+
+
+
+# How to execute tests
+
+## Instalar dependências (se necessário)
+pip install matplotlib pytest
+
+## Executar todos os testes com supressão de warnings
+pytest test_performance.py -v -s -W ignore::DeprecationWarning
+
+## Executar teste específico do gráfico tempo vs tamanho
+pytest test_performance.py::test_performance_vs_graph_size -v -s -W ignore::DeprecationWarning
+
+## Executar teste específico do gráfico nós explorados
+pytest test_performance.py::test_nodes_explored_comparison -v -s -W ignore::DeprecationWarning
+
+## Executar teste de performance A-Z
+pytest test_performance.py::test_performance_analysis_AZ -v -s -W ignore::DeprecationWarning
+
+## Executar teste de correção
+pytest test_performance.py::test_algorithm_correctness_AZ -v -s -W ignore::DeprecationWarning
+
+## Executar com relatório simplificado
+pytest test_performance.py -v --tb=short -W ignore::DeprecationWarning
